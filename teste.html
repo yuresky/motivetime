@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enviar Notificação</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
 </head>
 <body>
     <h1>Enviar Notificação</h1>
@@ -17,22 +16,36 @@
     <script>
         const notificationForm = document.getElementById('notificationForm');
 
-        notificationForm.addEventListener('submit', async function(event) {
+        notificationForm.addEventListener('submit', function(event) {
             event.preventDefault();
 
             const message = document.getElementById('message').value;
 
-            try {
-                const response = await axios.post('/send-notification', {
-                    message: message
+            if (Notification.permission === 'granted') {
+                // Se a permissão para notificações está concedida
+                showNotification(message);
+            } else if (Notification.permission !== 'denied') {
+                // Se a permissão ainda não foi solicitada, solicitamos agora
+                Notification.requestPermission().then(function(permission) {
+                    if (permission === 'granted') {
+                        showNotification(message);
+                    }
                 });
-                alert('Notificação enviada com sucesso!');
-                console.log(response.data);
-            } catch (error) {
-                alert('Erro ao enviar notificação. Por favor, tente novamente.');
-                console.error(error);
             }
         });
+
+        function showNotification(message) {
+            const notification = new Notification('Nova Notificação', {
+                body: message,
+                icon: 'https://via.placeholder.com/100', // URL para o ícone da notificação
+            });
+
+            notification.onclick = function() {
+                // Ação a ser executada ao clicar na notificação (opcional)
+                window.focus(); // Foca na janela do navegador ao clicar na notificação
+                notification.close(); // Fecha a notificação ao clicar nela
+            };
+        }
     </script>
 </body>
 </html>
