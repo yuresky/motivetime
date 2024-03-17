@@ -32,12 +32,8 @@
       var raio = e.accuracy / 10;
 
       // Mostra a localização do usuário
-      if (!marcadorLocalizacaoUsuario) {
-        marcadorLocalizacaoUsuario = L.marker(e.latlng).addTo(mapa)
-          .bindPopup("Você está aqui!").openPopup();
-      } else {
-        marcadorLocalizacaoUsuario.setLatLng(e.latlng);
-      }
+      marcadorLocalizacaoUsuario = L.marker(e.latlng).addTo(mapa)
+        .bindPopup("Você está aqui!").openPopup();
 
       L.circle(e.latlng, raio).addTo(mapa);
 
@@ -56,6 +52,7 @@
       // var distancia =  mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), latlng) / 1000     
       var distancia =  mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), latlng)     
 
+
       marcadorEscolhidoUsuario.bindPopup("Distância: " +  distancia.toFixed(2) + "Metros").openPopup();
     }
 
@@ -66,20 +63,14 @@
     mapa.on('locationfound', aoEncontrarLocalizacao);
     mapa.on('locationerror', aoFalharLocalizacao);
 
-    // Watchid do usuário
-    var watchId = navigator.geolocation.watchPosition(function(position) {
-      var latlng = L.latLng(position.coords.latitude, position.coords.longitude);
-      marcadorLocalizacaoUsuario.setLatLng(latlng);
-      L.circle(latlng, position.coords.accuracy / 10).addTo(mapa);
-    });
-
     // layer padrão disponível no site do leaflet
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(mapa);
-
-    // Stop watching user's position
-    // navigator.geolocation.clearWatch(watchId);
   </script>
 </body>
 </html>
+
+
+
+<!-- raio distancia notificaão -->
