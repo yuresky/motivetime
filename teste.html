@@ -1,99 +1,38 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Selecionar Localização</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <style>
-    #map {
-      height: 400px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enviar Notificação</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
 </head>
 <body>
-  <div id="map"></div>
+    <h1>Enviar Notificação</h1>
+    <form id="notificationForm">
+        <label for="message">Mensagem:</label><br>
+        <textarea id="message" name="message" rows="4" cols="50"></textarea><br><br>
+        <button type="submit">Enviar Notificação</button>
+    </form>
 
-  <!-- CDN -->
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geometryutil/0.12.0/leaflet.geometryutil.min.js"></script>
-  <script>
-    // inicializa o map
-    var mapa = L.map('map');
+    <script>
+        const notificationForm = document.getElementById('notificationForm');
 
-    // Tenta obter a localização do usuário
-    mapa.locate({setView: true, maxZoom: 16});
-    // Nota: setView 'true' retorna  localização atual do usuário quando estiver disponível.
+        notificationForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
 
-    var marcadorLocalizacaoUsuario;
-    var marcadorEscolhidoUsuario;
+            const message = document.getElementById('message').value;
 
-    function aoEncontrarLocalizacao(e) {
-      var raio = e.accuracy / 10;
-
-      // Mostra a localização do usuário
-      if (!marcadorLocalizacaoUsuario) {
-        marcadorLocalizacaoUsuario = L.marker(e.latlng).addTo(mapa)
-          .bindPopup("Você está aqui!").openPopup();
-      } else {
-        marcadorLocalizacaoUsuario.setLatLng(e.latlng);
-      }
-
-      L.circle(e.latlng, raio).addTo(mapa);
-
-      mapa.on('click', function(e) {
-        atualizarMarcador(e.latlng);
-      });
-
-      // Calcula a distância entre a localização atual do usuário e o marcador escolhido
-      if (marcadorEscolhidoUsuario) {
-        var distancia =  mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcadorEscolhidoUsuario.getLatLng());
-
-        // Se a distância for menor que 10 metros, envie a notificação
-        if (distancia < 10) {
-          if ('Notification' in window && Notification.permission === "granted") {
-            new Notification('Você está próximo do marcador selecionado!');
-          } else if ('Notification' in window && Notification.permission !== "denied") {
-            Notification.requestPermission(function (permission) {
-              if (permission === "granted") {
-                new Notification('Você está próximo do marcador selecionado!');
-              }
-            });
-          }
-        }
-      }
-    }
-
-    function atualizarMarcador(latlng) {
-      if (!marcadorEscolhidoUsuario) {
-        marcadorEscolhidoUsuario = L.marker(latlng, {draggable: true}).addTo(mapa);
-      } else {
-        marcadorEscolhidoUsuario.setLatLng(latlng);
-      }
-
-      // Calculate distance between user's current location and selected location
-      var distancia =  mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), latlng);
-
-      // Update the popup of the selected marker with the distance
-      marcadorEscolhidoUsuario.bindPopup("Distância: " +  distancia.toFixed(2) + " Metros").openPopup();
-
-      // Create a circle around the selected marker with the accuracy radius
-      var local = marcadorEscolhidoUsuario.getLatLng();
-      var raioMarcadorEscolhidoUsuario = local.accuracy / 10;
-      L.circle(local, {radius: raioMarcadorEscolhidoUsuario}).addTo(mapa);
-    }
-
-    function aoFalharLocalizacao(e) {
-      alert(e.message);
-    }
-
-    mapa.on('locationfound', aoEncontrarLocalizacao);
-    mapa.on('locationerror', aoFalharLocalizacao);
-
-    // layer padrão disponível no site do leaflet
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(mapa);
-  </script>
+            try {
+                const response = await axios.post('/send-notification', {
+                    message: message
+                });
+                alert('Notificação enviada com sucesso!');
+                console.log(response.data);
+            } catch (error) {
+                alert('Erro ao enviar notificação. Por favor, tente novamente.');
+                console.error(error);
+            }
+        });
+    </script>
 </body>
 </html>
