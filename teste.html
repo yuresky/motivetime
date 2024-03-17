@@ -21,29 +21,35 @@
 
             const message = document.getElementById('message').value;
 
-            if (Notification.permission === 'granted') {
-                // Se a permissão para notificações está concedida
-                showNotification(message);
+            if (!message) {
+                alert('Por favor, insira uma mensagem.');
+                return;
+            }
+
+            if (!("Notification" in window)) {
+                alert("Este navegador não suporta notificações.");
+                return;
+            }
+
+            if (Notification.permission === "granted") {
+                enviarNotificacao(message);
             } else if (Notification.permission !== 'denied') {
-                // Se a permissão ainda não foi solicitada, solicitamos agora
                 Notification.requestPermission().then(function(permission) {
-                    if (permission === 'granted') {
-                        showNotification(message);
+                    if (permission === "granted") {
+                        enviarNotificacao(message);
                     }
                 });
             }
         });
 
-        function showNotification(message) {
-            const notification = new Notification('Nova Notificação', {
-                body: message,
-                icon: 'https://via.placeholder.com/100', // URL para o ícone da notificação
+        function enviarNotificacao(message) {
+            const notification = new Notification("Notificação", {
+                body: message
             });
 
             notification.onclick = function() {
-                // Ação a ser executada ao clicar na notificação (opcional)
-                window.focus(); // Foca na janela do navegador ao clicar na notificação
-                notification.close(); // Fecha a notificação ao clicar nela
+                window.focus();
+                this.close();
             };
         }
     </script>
