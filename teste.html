@@ -51,9 +51,11 @@
 
         // Se a distância for menor que 10 metros, envie a notificação
         if (distancia < 10) {
-          if ('Notification' in window) {
-            Notification.requestPermission().then(function(permission) {
-              if (permission === 'granted') {
+          if ('Notification' in window && Notification.permission === "granted") {
+            new Notification('Você está próximo do marcador selecionado!');
+          } else if ('Notification' in window && Notification.permission !== "denied") {
+            Notification.requestPermission(function (permission) {
+              if (permission === "granted") {
                 new Notification('Você está próximo do marcador selecionado!');
               }
             });
