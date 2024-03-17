@@ -6,28 +6,32 @@
   <title>Document</title>
 </head>
 <body>
-  <button id="notify">Notify me!</button>
+  <button id="enable" onclick="askNotificationPermission()">Enable notifications</button>
 
   <script>
-const notifyButton = document.getElementById('notify');
+    function askNotificationPermission() {
+      // Check if the browser supports notifications
+      if (!("Notification" in window)) {
+        console.log("This browser does not support notifications.");
+        return;
+      }
+      Notification.requestPermission().then((permission) => {
+        // set the button to shown or hidden, depending on what the user answers
+        document.getElementById('enable').style.display = permission === "granted" ? "none" : "block";
+      });
+    }
 
-notifyButton.addEventListener('click', () => {
-  if (Notification.permission === 'granted') {
-    const notification = new Notification('New message!', {
-      icon: '/path/to/icon.png',
-      body: 'You have a new message in your inbox.'
-    });
-  } else {
-    Notification.requestPermission().then((permission) => {
-      if (permission === 'granted') {
-        const notification = new Notification('New message!', {
-          icon: '/path/to/icon.png',
-          body: 'You have a new message in your inbox.'
-        });
+    // Defina o título da notificação
+    const title = "Important Task";
+
+    // Verifica se a permissão de notificação foi concedida
+    Notification.requestPermission().then(function(permission) {
+      if (permission === "granted") {
+        const img = "#";
+        const text = `HEY! Your task "${title}" is now overdue.`;
+        const notification = new Notification("To do list", { body: text, icon: img });
       }
     });
-  }
-});
   </script>
 </body>
 </html>
