@@ -1,57 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enviar Notificação</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
 </head>
 <body>
-    <h1>Enviar Notificação</h1>
-    <form id="notificationForm">
-        <label for="message">Mensagem:</label><br>
-        <textarea id="message" name="message" rows="4" cols="50"></textarea><br><br>
-        <button type="submit">Enviar Notificação</button>
-    </form>
+  <button id="notify">Notify me!</button>
 
-    <script>
-        const notificationForm = document.getElementById('notificationForm');
+  <script>
+const notifyButton = document.getElementById('notify');
 
-        notificationForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            const message = document.getElementById('message').value;
-
-            if (!message) {
-                alert('Por favor, insira uma mensagem.');
-                return;
-            }
-
-            if (!("Notification" in window)) {
-                alert("Este navegador não suporta notificações.");
-                return;
-            }
-
-            if (Notification.permission === "granted") {
-                enviarNotificacao(message);
-            } else if (Notification.permission !== 'denied') {
-                Notification.requestPermission().then(function(permission) {
-                    if (permission === "granted") {
-                        enviarNotificacao(message);
-                    }
-                });
-            }
+notifyButton.addEventListener('click', () => {
+  if (Notification.permission === 'granted') {
+    const notification = new Notification('New message!', {
+      icon: '/path/to/icon.png',
+      body: 'You have a new message in your inbox.'
+    });
+  } else {
+    Notification.requestPermission().then((permission) => {
+      if (permission === 'granted') {
+        const notification = new Notification('New message!', {
+          icon: '/path/to/icon.png',
+          body: 'You have a new message in your inbox.'
         });
-
-        function enviarNotificacao(message) {
-            const notification = new Notification("Notificação", {
-                body: message
-            });
-
-            notification.onclick = function() {
-                window.focus();
-                this.close();
-            };
-        }
-    </script>
+      }
+    });
+  }
+});
+  </script>
 </body>
 </html>
