@@ -1,6 +1,7 @@
-.mapBox {
-    position: relative;
-    width: 600px;
-    height: 500px;
+#map {
+    height: 200px;
 }
-  
+
+body{
+    background-color: cadetblue;
+}
