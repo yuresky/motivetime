@@ -49,12 +49,13 @@
 
       marcadorEscolhidoUsuario.bindPopup("Distância: " +  distancia.toFixed(2) + " Metros").openPopup();
 
-      // Aqui você pode verificar a distância e enviar a notificação se estiver dentro de um limite
-      var limiteDistancia = 10; // Define o limite de distância em metros
+      // verificar a distância e enviar a notificação se estiver dentro de um limite
+      var limiteDistancia = 11; // Define o limite de distância em metros
       if (distancia <= limiteDistancia) {
         Notification.requestPermission().then(perm => {
           if (perm === "granted") {
             new Notification("Você está próximo ao marcador escolhido!");
+            alert("próximo do marcador")
           }
         });
       }
