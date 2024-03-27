@@ -15,9 +15,9 @@
     function solicitarPermissao() {
       Notification.requestPermission().then(function(permission) {
         if (permission === "granted") {
-          console.log("Permissão concedida para enviar notificações!");
+          alert("Permissão concedida para enviar notificações!");
         } else {
-          console.log("Permissão negada para enviar notificações.");
+          alert("Permissão negada para enviar notificações.");
         }
       });
     }
@@ -33,11 +33,11 @@
         var notification = new Notification("Título da Notificação", options);
 
         notification.onclick = function() {
-          console.log("Notificação clicada!");
+          alert("Notificação clicada!");
         };
         
       } else {
-        console.log("Permissão não concedida para enviar notificações.");
+        alert("Permissão não concedida para enviar notificações.");
       }
     }
   </script>
