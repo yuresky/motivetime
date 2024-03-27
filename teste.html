@@ -61,6 +61,16 @@
       }
     }
 
+    setInterval(function() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      var latlng = L.latLng(position.coords.latitude, position.coords.longitude);
+      marcadorLocalizacaoUsuario.setLatLng(latlng);
+      atualizarMarcador(latlng);
+    });
+  }
+}, 5000);
+
     function aoFalharLocalizacao(e) {
       alert(e.message);
     }
