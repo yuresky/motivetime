@@ -3,43 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Exemplo de Notificação</title>
+  <title>Exemplo de Alerta</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 <body>
-  <h1>Exemplo de Notificação</h1>
-  
-  <button onclick="solicitarPermissao()">Permitir Notificações</button>
-  <button onclick="enviarNotificacao()">Enviar Notificação</button>
+
+  <h1>Exemplo de Alerta</h1>
+  <button onclick="exibirAlerta()">Clique Aqui!</button>
 
   <script>
-    function solicitarPermissao() {
-      Notification.requestPermission().then(function(permission) {
-        if (permission === "granted") {
-          alert("Permissão concedida para enviar notificações!");
-        } else {
-          alert("Permissão negada para enviar notificações.");
-        }
-      });
-    }
-
-    function enviarNotificacao() {
-      if (Notification.permission === "granted") {
-        var options = {
-          body: "Esta é uma notificação de exemplo!",
-          icon: "https://via.placeholder.com/128",
-          badge: "https://via.placeholder.com/64",
-        };
-        
-        var notification = new Notification("Título da Notificação", options);
-
-        notification.onclick = function() {
-          alert("Notificação clicada!");
-        };
-        
-      } else {
-        alert("Permissão não concedida para enviar notificações.");
-      }
+    function exibirAlerta() {
+      alert("Você clicou no botão!");
     }
   </script>
+
 </body>
 </html>
