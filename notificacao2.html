@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exemplo de Notificação</title>
+</head>
+<body>
+  <h1>Exemplo de Notificação</h1>
+  
+  <button onclick="solicitarPermissao()">Permitir Notificações</button>
+  <button onclick="enviarNotificacao()">Enviar Notificação</button>
+
+  <script>
+    function solicitarPermissao() {
+      Notification.requestPermission().then(function(permission) {
+        if (permission === "granted") {
+          console.log("Permissão concedida para enviar notificações!");
+        } else {
+          console.log("Permissão negada para enviar notificações.");
+        }
+      });
+    }
+
+    function enviarNotificacao() {
+      if (Notification.permission === "granted") {
+        var options = {
+          body: "Esta é uma notificação de exemplo!",
+          icon: "https://via.placeholder.com/128",
+          badge: "https://via.placeholder.com/64",
+        };
+        
+        var notification = new Notification("Título da Notificação", options);
+
+        notification.onclick = function() {
+          console.log("Notificação clicada!");
+        };
+        
+      } else {
+        console.log("Permissão não concedida para enviar notificações.");
+      }
+    }
+  </script>
+</body>
+</html>
