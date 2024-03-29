@@ -38,7 +38,7 @@
         atualizarMarcador(e.latlng);
       });
 
-      // Update the distance between the two markers
+      // atualizar a distância nos dois amrcadorees
       if (marcadorEscolhidoUsuario) {
         distancia =  mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcadorEscolhidoUsuario.getLatLng());
         marcadorEscolhidoUsuario.bindPopup("Distância: " +  distancia.toFixed(2) + " Metros").openPopup();
@@ -62,7 +62,7 @@
         marcadorEscolhidoUsuario.setLatLng(latlng);
       }
 
-      // clear the current watch and start a new one
+      // limpa a observação atual(clearwatch) e inicia uma nova
       if (watchId) {
         navigator.geolocation.clearWatch(watchId);
       }
@@ -77,6 +77,7 @@
           if (distancia <= limiteDistancia) {
             Notification.requestPermission().then(perm => {
               if (perm === "granted") {
+                new Notification("proximo")
                 alert("próximo do marcador")
               }
             });
