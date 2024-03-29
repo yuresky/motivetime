@@ -56,7 +56,7 @@
     }
 
     var lastLatlng = null;
-var distanceThreshold = 50; // Threshold distancein meters
+var distanceThreshold = 50; // Limite de distância em metros
 
 function atualizarMarcador(latlng) {
   if (!marcadorEscolhidoUsuario) {
@@ -66,13 +66,13 @@ function atualizarMarcador(latlng) {
   }
 
   if (!lastLatlng) {
-    // First time updating the location, so start a new watchPosition request
+    // Primeira vez atualizando a localização, então inicia uma nova solicitação de watchPosition
     startWatchPosition();
     lastLatlng = latlng;
   } else {
     var distance = mapa.distance(lastLatlng, latlng);
     if (distance > distanceThreshold) {
-      // User has moved more than the threshold distance, so start a new watchPosition request
+      // O usuário se moveu mais que o limite de distância, então inicia uma nova solicitação de watchPosition
       clearWatch(watchId);
       startWatchPosition();
     }
@@ -85,29 +85,31 @@ function startWatchPosition() {
     navigator.geolocation.clearWatch(watchId);
   }
 
-  // Define the interval for position updates
-  var interval = 10000; // Update position every 5 seconds
+  // Define o intervalo de tempo para atualização (em milissegundos)
+  var intervaloAtualizacao = 10000; // Atualiza a cada 10 segundos
 
-  watchId = navigator.geolocation.watchPosition(function(position) {
-    var latlng = L.latLng(position.coords.latitude, position.coords.longitude);
-    marcadorLocalizacaoUsuario.setLatLng(latlng);
-    L.circle(latlng, position.coords.accuracy / 10).addTo(mapa);
-    if (marcadorEscolhidoUsuario) {
-      distancia = mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcadorEscolhidoUsuario.getLatLng());
-      marcadorEscolhidoUsuario.bindPopup("Distância: " + distancia.toFixed(2) + " Metros").openPopup();
-      var limiteDistancia = 11; // Define the distance limit in meters
-      if (distancia <= limiteDistancia) {
-        Notification.requestPermission().then(perm => {
-          if (perm === "granted") {
-            // new Notification("proximo")
-            alert("Próximo do marcador");
-          }
-        });
+  watchId = setInterval(function() {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      var latlng = L.latLng(position.coords.latitude, position.coords.longitude);
+      marcadorLocalizacaoUsuario.setLatLng(latlng);
+      L.circle(latlng, position.coords.accuracy / 10).addTo(mapa);
+      if (marcadorEscolhidoUsuario) {
+        distancia = mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcadorEscolhidoUsuario.getLatLng());
+        marcadorEscolhidoUsuario.bindPopup("Distância: " + distancia.toFixed(2) + " Metros").openPopup();
+        var limiteDistancia = 11; // Define o limite de distância em metros
+        if (distancia <= limiteDistancia) {
+          Notification.requestPermission().then(perm => {
+            if (perm === "granted") {
+              // new Notification("proximo")
+              alert("Próximo do marcador");
+            }
+          });
+        }
       }
-    }
-    // Alert every time the location is updated
-    alert("Localização atualizada!");
-  });
+      // Alerta toda vez que o clearwatch atualizar a localização
+      alert("Localização atualizada pelo clearwatch");
+    });
+  }, intervaloAtualizacao);
 }
 
     function aoFalharLocalizacao(e) {
