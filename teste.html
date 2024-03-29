@@ -55,20 +55,38 @@
       }
     }
 
-    function atualizarMarcador(latlng) {
+    var lastLatlng = null;
+var distanceThreshold = 50; // Threshold distancein meters
+
+function atualizarMarcador(latlng) {
   if (!marcadorEscolhidoUsuario) {
     marcadorEscolhidoUsuario = L.marker(latlng, { draggable: true }).addTo(mapa);
   } else {
     marcadorEscolhidoUsuario.setLatLng(latlng);
   }
 
-  // Limpa a observação atual (clearwatch) e inicia uma nova
+  if (!lastLatlng) {
+    // First time updating the location, so start a new watchPosition request
+    startWatchPosition();
+    lastLatlng = latlng;
+  } else {
+    var distance = mapa.distance(lastLatlng, latlng);
+    if (distance > distanceThreshold) {
+      // User has moved more than the threshold distance, so start a new watchPosition request
+      clearWatch(watchId);
+      startWatchPosition();
+    }
+    lastLatlng = latlng;
+  }
+}
+
+function startWatchPosition() {
   if (watchId) {
     navigator.geolocation.clearWatch(watchId);
   }
-  
-  // Define o intervalo de tempo para atualização (em milissegundos)
-  var intervaloAtualizacao = 5000; // Atualiza a cada 5 segundos
+
+  // Define the interval for position updates
+  var interval = 10000; // Update position every 5 seconds
 
   watchId = navigator.geolocation.watchPosition(function(position) {
     var latlng = L.latLng(position.coords.latitude, position.coords.longitude);
@@ -77,7 +95,7 @@
     if (marcadorEscolhidoUsuario) {
       distancia = mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcadorEscolhidoUsuario.getLatLng());
       marcadorEscolhidoUsuario.bindPopup("Distância: " + distancia.toFixed(2) + " Metros").openPopup();
-      var limiteDistancia = 11; // Define o limite de distância em metros
+      var limiteDistancia = 11; // Define the distance limit in meters
       if (distancia <= limiteDistancia) {
         Notification.requestPermission().then(perm => {
           if (perm === "granted") {
@@ -87,8 +105,8 @@
         });
       }
     }
-    // Alerta toda vez que o clearwatch atualizar a localização
-    alert("Localização atualizada pelo clearwatch");
+    // Alert every time the location is updated
+    alert("Localização atualizada!");
   });
 }
 
