@@ -1,70 +1,93 @@
-// Variáveis para mapa e marcadores
-var mapa, marcadorUsuario, marcadorDestino;
 
-// Função para obter a localização do usuário
-function obterLocalizacao() {
-  navigator.geolocation.getCurrentPosition(function(position) {
-    var lat = position.coords.latitude;
-    var lon = position.coords.longitude;
+var mapa = L.map('map');
+mapa.locate({setView: true, maxZoom: 16});
 
-    // Criar marcador do usuário
-    marcadorUsuario = L.marker([lat, lon]).addTo(mapa);
+var marcadorLocalizacaoUsuario;
+var marcadoresEscolhidos = [];
+var watchId;
+var distancia;
 
-    // Centralizar o mapa na localização do usuário
-    mapa.setView([lat, lon], 13);
+function aoEncontrarLocalizacao(e) {
+  var raio = e.accuracy / 10;
+
+  if (!marcadorLocalizacaoUsuario) {
+    marcadorLocalizacaoUsuario = L.marker(e.latlng).addTo(mapa)
+      .bindPopup("Você está aqui!").openPopup();
+  } else {
+    marcadorLocalizacaoUsuario.setLatLng(e.latlng);
+  }
+
+  L.circle(e.latlng, raio).addTo(mapa);
+
+  mapa.on('click', function(e) {
+    if (selecionandoPonto) {
+      atualizarMarcador(e.latlng);
+      selecionandoPonto = false;
+      btnSelecionarPonto.innerText = "Selecionar Ponto";
+    }
+  });
+
+  if (marcadoresEscolhidos.length > 0) {
+    marcadoresEscolhidos.forEach(function(marcador) {
+      distancia = mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcador.getLatLng());
+      marcador.bindPopup("Distância: " +  distancia.toFixed(2) + " Metros").openPopup();
+    });
+  }
+}
+
+function atualizarMarcador(latlng) {
+  var novoMarcador;
+  if (marcadoresEscolhidos.length < 3) { // Define o máximo de três marcadores
+    novoMarcador = L.marker(latlng, { draggable: false }).addTo(mapa);
+    marcadoresEscolhidos.push(novoMarcador);
+  } else {
+    alert("Você já atingiu o limite máximo de marcadores.");
+    return;
+  }
+
+  if (watchId) {
+    navigator.geolocation.clearWatch(watchId);
+  }
+
+  watchId = navigator.geolocation.watchPosition(function(position) {
+    var latlng = L.latLng(position.coords.latitude, position.coords.longitude);
+    marcadorLocalizacaoUsuario.setLatLng(latlng);
+    L.circle(latlng, position.coords.accuracy / 10).addTo(mapa);
+
+    marcadoresEscolhidos.forEach(function(marcador) {
+      distancia = mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcador.getLatLng());
+      marcador.bindPopup("Distância: " +  distancia.toFixed(2) + " Metros").openPopup();
+    });
+
+    var limiteDistancia = 11; // Define o limite de distância em metros
+    if (distancia <= limiteDistancia) {
+      Notification.requestPermission().then(perm => {
+        if (perm === "granted") {
+          alert("Próximo do marcador");
+        }
+      });
+    }
   });
 }
 
-// Função para adicionar marcador no clique do mapa
-function adicionarMarcador(e) {
-  var lat = e.latlng.lat;
-  var lon = e.latlng.lng;
+function aoFalharLocalizacao(e) {
+  alert(e.message);
+}
 
-  // Remover marcador de destino anterior
-  if (marcadorDestino) {
-    mapa.removeLayer(marcadorDestino);
+var selecionandoPonto = false;
+var btnSelecionarPonto = document.getElementById('btnSelecionarPonto');
+btnSelecionarPonto.addEventListener('click', function() {
+  selecionandoPonto = !selecionandoPonto;
+  if (selecionandoPonto) {
+    btnSelecionarPonto.innerText = "Cancelar Seleção";
+  } else {
+    btnSelecionarPonto.innerText = "Selecionar Ponto";
   }
+});
 
-  // Criar novo marcador de destino
-  marcadorDestino = L.marker([lat, lon]).addTo(mapa);
+mapa.on('locationfound', aoEncontrarLocalizacao);
+mapa.on('locationerror', aoFalharLocalizacao);
 
-  // Calcular e mostrar a distância
-  var distancia = calcularDistancia(lat, lon);
-  document.getElementById("distancia").innerHTML = "Distância: " + distancia.toFixed(2) + " km";
-}
-
-// Função para calcular a distância
-function calcularDistancia(latDestino, lonDestino) {
-  var latUsuario = marcadorUsuario.getLatLng().lat;
-  var lonUsuario = marcadorUsuario.getLatLng().lng;
-
-  // Fórmula de Haversine para calcular a distância em linha reta
-  var dLat = (latDestino - latUsuario) * Math.PI / 180;
-  var dLon = (lonDestino - lonUsuario) * Math.PI / 180;
-  var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-          Math.cos(latUsuario * Math.PI / 180) * Math.cos(latDestino * Math.PI / 180) *
-          Math.sin(dLon/2) * Math.sin(dLon/2);
-  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  var distancia = 6371 * c; // Raio da Terra em km
-
-  return distancia;
-}
-
-// Inicialização do mapa
-mapa = L.map('mapa').setView([0, 0], 1);
-
-// Adicionar camada de tiles
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(mapa);
-
-// Obter localização do usuário
-obterLocalizacao();
-
-// Adicionar evento de clique no mapa
-mapa.on('click', adicionarMarcador);
-
-// Elemento para mostrar a distância
-var distanciaElement = document.createElement("p");
-distanciaElement.id = "distancia";
-document.body.appendChild(distanciaElement);
