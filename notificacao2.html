@@ -1,40 +1,26 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Exemplo de Alerta</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin-top: 50px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #007bff;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      border-radius: 5px;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-  </style>
+  <title>Document</title>
 </head>
 <body>
-
-  <h1>Exemplo de Alerta</h1>
-  <button onclick="exibirAlerta()">Clique Aqui!</button>
-
   <script>
-    function exibirAlerta() {
-      alert("Você clicou no botão!");
+    if (Notification.permission === "granted") {
+  var notification = new Notification("Título da Notificação", {
+    body: "Corpo da notificação aqui."
+  });
+} else if (Notification.permission !== 'denied') {
+  Notification.requestPermission().then(function (permission) {
+    if (permission === "granted") {
+      var notification = new Notification("Título da Notificação", {
+        body: "Corpo da notificação aqui."
+      });
     }
-  </script>
+  });
+}
 
+  </script>
 </body>
 </html>
