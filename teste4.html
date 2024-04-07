@@ -5,17 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Menu Pop-up</title>
 <style>
-    .popup {
+  .popup {
   display: none;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: absolute;
   background-color: #f9f9f9;
   padding: 20px;
   border: 1px solid #ccc;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
 }
 
 .popup ul {
@@ -36,6 +34,17 @@
   color: #007bff;
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
 </style>
 </head>
 <body>
@@ -50,19 +59,25 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function() {
   let timeoutId;
 
-  document.addEventListener('mousedown', function() {
+  document.addEventListener('mousedown', function(event) {
     timeoutId = setTimeout(function() {
-      document.getElementById('menuPopup').style.display = 'block';
-    }, 2000);
+      const menuPopup = document.getElementById('menuPopup');
+      menuPopup.style.display = 'block';
+      menuPopup.style.top = event.clientY + 'px';
+      menuPopup.style.left = event.clientX + 'px';
+    }, 1000);
   });
 
-  document.addEventListener('touchstart', function() {
+  document.addEventListener('touchstart', function(event) {
     timeoutId = setTimeout(function() {
-      document.getElementById('menuPopup').style.display = 'block';
-    }, 2000);
+      const menuPopup = document.getElementById('menuPopup');
+      menuPopup.style.display = 'block';
+      menuPopup.style.top = event.touches[0].clientY + 'px';
+      menuPopup.style.left = event.touches[0].clientX + 'px';
+    }, 1000);
   });
 
   document.addEventListener('mouseup', function() {
