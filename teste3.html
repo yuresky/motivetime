@@ -14,6 +14,77 @@
   <!-- CDN -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geometryutil/0.12.0/leaflet.geometryutil.min.js"></script>
-  <script src="script.js"></script>
+  <script>
+    var mapa = L.map('map');
+    mapa.locate({setView: true, maxZoom: 16});
+
+    var marcadores = [];
+    var marcadorLocalizacaoUsuario;
+    var limiteDistancia = 11; // Define o limite de distância em metros
+
+    function aoEncontrarLocalizacao(e) {
+      var raio = e.accuracy / 10;
+
+      if (!marcadorLocalizacaoUsuario) {
+        marcadorLocalizacaoUsuario = L.marker(e.latlng).addTo(mapa)
+          .bindPopup("Você está aqui!").openPopup();
+      } else {
+        marcadorLocalizacaoUsuario.setLatLng(e.latlng);
+      }
+
+      L.circle(e.latlng, raio).addTo(mapa);
+
+      atualizarPopupsDistancia();
+      verificarDistanciaParaNotificacao();
+    }
+
+    function adicionarMarcador(latlng) {
+      var marcador = L.marker(latlng, {draggable: true}).addTo(mapa);
+      marcadores.push(marcador);
+      atualizarPopupsDistancia();
+      verificarDistanciaParaNotificacao();
+    }
+
+    function atualizarPopupsDistancia() {
+      if (marcadorLocalizacaoUsuario) {
+        marcadores.forEach(function(marcador) {
+          var distancia = mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcador.getLatLng());
+          marcador.bindPopup("Distância: " +  distancia.toFixed(2) + " Metros").openPopup();
+        });
+      }
+    }
+
+    function verificarDistanciaParaNotificacao() {
+      if (marcadorLocalizacaoUsuario) {
+        marcadores.forEach(function(marcador) {
+          var distancia = mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcador.getLatLng());
+          if (distancia <= limiteDistancia) {
+            Notification.requestPermission().then(perm => {
+              if (perm === "granted") {
+                alert("Próximo do marcador");
+              }
+            });
+          }
+        });
+      }
+    }
+
+    function aoFalharLocalizacao(e) {
+      alert(e.message);
+    }
+
+    mapa.on('locationfound', aoEncontrarLocalizacao);
+    mapa.on('locationerror', aoFalharLocalizacao);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(mapa);
+
+    document.getElementById('btnSelecionarPonto').addEventListener('click', function() {
+      mapa.on('click', function(e) {
+        adicionarMarcador(e.latlng);
+      });
+    });
+  </script>
 </body>
 </html>
