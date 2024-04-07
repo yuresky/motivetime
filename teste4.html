@@ -1,78 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Site com Pop-up de Ação</title>
-    <style>
-      body, html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menu Pop-up</title>
+<style>
+    .popup {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #f9f9f9;
+  padding: 20px;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
 }
 
-.container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
+.popup ul {
+  list-style-type: none;
+  padding: 0;
 }
 
-.popup {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+.popup ul li {
+  margin-bottom: 10px;
 }
 
-.popup-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    padding: 20px;
-    border-radius: 5px;
-    text-align: center;
+.popup ul li a {
+  text-decoration: none;
+  color: #333;
 }
 
-button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+.popup ul li a:hover {
+  color: #007bff;
 }
 
-    </style>
+</style>
 </head>
 <body>
-    <div class="container" onmousedown="showPopup()" ontouchstart="showPopup()">
-        <h1>Clique e segure para ação</h1>
-    </div>
 
-    <div class="popup" id="popup">
-        <div class="popup-content">
-            <h2>Pop-up de Ação</h2>
-            <p>A ação desejada pode ser colocada aqui.</p>
-            <button onclick="closePopup()">Fechar</button>
-        </div>
-    </div>
+<div id="menuPopup" class="popup">
+  <ul>
+    <li><a href="#">Item 1</a></li>
+    <li><a href="#">Item 2</a></li>
+    <li><a href="#">Item 3</a></li>
+    <li><a href="#">Item 4</a></li>
+  </ul>
+</div>
 
-    <script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+  let timeoutId;
 
-      function showPopup() {
-          document.getElementById('popup').style.display = 'block';
-      }
+  document.addEventListener('mousedown', function() {
+    timeoutId = setTimeout(function() {
+      document.getElementById('menuPopup').style.display = 'block';
+    }, 2000);
+  });
 
-      function closePopup() {
-          document.getElementById('popup').style.display = 'none';
-      }
+  document.addEventListener('touchstart', function() {
+    timeoutId = setTimeout(function() {
+      document.getElementById('menuPopup').style.display = 'block';
+    }, 2000);
+  });
 
-    </script>
+  document.addEventListener('mouseup', function() {
+    clearTimeout(timeoutId);
+  });
+
+  document.addEventListener('touchend', function() {
+    clearTimeout(timeoutId);
+  });
+});
+
+</script>
 </body>
 </html>
