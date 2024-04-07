@@ -1,98 +1,78 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Selecionar Localização</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-  <link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site com Pop-up de Ação</title>
+    <style>
+      body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.popup-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+    </style>
 </head>
 <body>
-  <div id="map"></div>
+    <div class="container" onmousedown="showPopup()" ontouchstart="showPopup()">
+        <h1>Clique e segure para ação</h1>
+    </div>
 
-  <!-- CDN -->
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geometryutil/0.12.0/leaflet.geometryutil.min.js"></script>
-  <script>
-    var mapa = L.map('map');
-    mapa.locate({setView: true, maxZoom: 16});
+    <div class="popup" id="popup">
+        <div class="popup-content">
+            <h2>Pop-up de Ação</h2>
+            <p>A ação desejada pode ser colocada aqui.</p>
+            <button onclick="closePopup()">Fechar</button>
+        </div>
+    </div>
 
-    var marcadorLocalizacaoUsuario;
-    var marcadorEscolhidoUsuario;
-    var watchId;
-    var limiteDistancia = 11; // Define o limite de distância em metros
+    <script>
 
-    function aoEncontrarLocalizacao(e) {
-      var raio = e.accuracy / 10;
-
-      if (!marcadorLocalizacaoUsuario) {
-        marcadorLocalizacaoUsuario = L.marker(e.latlng).addTo(mapa)
-          .bindPopup("Você está aqui!").openPopup();
-      } else {
-        marcadorLocalizacaoUsuario.setLatLng(e.latlng);
+      function showPopup() {
+          document.getElementById('popup').style.display = 'block';
       }
 
-      L.circle(e.latlng, raio).addTo(mapa);
-
-      mapa.on('click', function(e) {
-        atualizarMarcador(e.latlng);
-      });
-
-      // atualizar a distância nos dois marcadores
-      if (marcadorEscolhidoUsuario) {
-        distancia = mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcadorEscolhidoUsuario.getLatLng());
-        marcadorEscolhidoUsuario.bindPopup("Distância: " +  distancia.toFixed(2) + " Metros").openPopup();
-
-        // verificar a distância e enviar a notificação se estiver dentro de um limite
-        if (distancia <= limiteDistancia) {
-          Notification.requestPermission().then(perm => {
-            if (perm === "granted") {
-              alert("próximo do marcador")
-            }
-          });
-        }
+      function closePopup() {
+          document.getElementById('popup').style.display = 'none';
       }
-    }
 
-    function atualizarMarcador(latlng) {
-      if (!marcadorEscolhidoUsuario) {
-        marcadorEscolhidoUsuario = L.marker(latlng, {draggable: true}).addTo(mapa);
-      } else {
-        marcadorEscolhidoUsuario.setLatLng(latlng);
-      }
-    }
-
-    function aoFalharLocalizacao(e) {
-      alert(e.message);
-    }
-
-    mapa.on('locationfound', aoEncontrarLocalizacao);
-    mapa.on('locationerror', aoFalharLocalizacao);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(mapa);
-
-    // Consultar a localização em intervalos regulares
-    setInterval(function() {
-      navigator.geolocation.getCurrentPosition(function(position) {
-        var latlng = L.latLng(position.coords.latitude, position.coords.longitude);
-        marcadorLocalizacaoUsuario.setLatLng(latlng);
-        L.circle(latlng, position.coords.accuracy / 10).addTo(mapa);
-        if(marcadorEscolhidoUsuario){
-          distancia = mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcadorEscolhidoUsuario.getLatLng());
-          marcadorEscolhidoUsuario.bindPopup("Distância: " +  distancia.toFixed(2) + " Metros").openPopup();
-          // verificar a distância e enviar a notificação se estiver dentro de um limite
-          if (distancia <= limiteDistancia) {
-            Notification.requestPermission().then(perm => {
-              if (perm === "granted") {
-                alert("próximo do marcador")
-              }
-            });
-          }
-        }
-      });
-    }, 5000); // Intervalo de 5 segundos
-  </script>
+    </script>
 </body>
 </html>
