@@ -21,10 +21,6 @@
     var marcadorEscolhidoUsuario;
     var watchId;
     var distancia;
-    var lastPosition;
-
-    // Defina o limite de precisão mínimo em metros
-    var precisionThreshold = 20;
 
     function aoEncontrarLocalizacao(e) {
       var raio = e.accuracy / 10;
@@ -42,47 +38,28 @@
         atualizarMarcador(e.latlng);
       });
 
-      // Atualize a última posição conhecida
-      lastPosition = e.latlng;
-    }
-
-    var distanceThreshold = 1; // Limite de distância em metros
-
-    function atualizarMarcador(latlng) {
-      if (!marcadorEscolhidoUsuario) {
-        marcadorEscolhidoUsuario = L.marker(latlng, { draggable: true }).addTo(mapa);
-      } else {
-        marcadorEscolhidoUsuario.setLatLng(latlng);
-      }
-
-      if (lastPosition) {
-        var distance = mapa.distance(lastPosition, latlng);
-        if (distance > distanceThreshold) {
-          // O usuário se moveu mais que o limite de distância
-          if (distance <= precisionThreshold) {
-            // A precisão da nova posição está dentro do limite aceitável, então atualize o marcador
-            lastPosition = latlng;
-          } else {
-            // A precisão da nova posição não é suficiente, ignore a atualização
-            return;
-          }
-        }
-      }
-
-      // Atualize a distância nos dois marcadores
+      // atualizar a distância nos dois marcadores
       if (marcadorEscolhidoUsuario) {
-        distancia = mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcadorEscolhidoUsuario.getLatLng());
-        marcadorEscolhidoUsuario.bindPopup("Distância: " + distancia.toFixed(2) + " Metros").openPopup();
+        distancia =  mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcadorEscolhidoUsuario.getLatLng());
+        marcadorEscolhidoUsuario.bindPopup("Distância: " +  distancia.toFixed(2) + " Metros").openPopup();
 
-        // Verifique a distância e envie uma notificação se estiver dentro de um limite
+        // verificar a distância e enviar a notificação se estiver dentro de um limite
         var limiteDistancia = 11; // Define o limite de distância em metros
         if (distancia <= limiteDistancia) {
           Notification.requestPermission().then(perm => {
             if (perm === "granted") {
-              alert("Próximo do marcador");
+              alert("próximo do marcador")
             }
           });
         }
+      }
+    }
+
+    function atualizarMarcador(latlng) {
+      if (!marcadorEscolhidoUsuario) {
+        marcadorEscolhidoUsuario = L.marker(latlng, {draggable: true}).addTo(mapa);
+      } else {
+        marcadorEscolhidoUsuario.setLatLng(latlng);
       }
     }
 
@@ -96,6 +73,30 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(mapa);
+
+    // Consultar a localização em intervalos regulares
+    setInterval(function() {
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+      watchId = navigator.geolocation.watchPosition(function(position) {
+        var latlng = L.latLng(position.coords.latitude, position.coords.longitude);
+        marcadorLocalizacaoUsuario.setLatLng(latlng);
+        L.circle(latlng, position.coords.accuracy / 10).addTo(mapa);
+        if(marcadorEscolhidoUsuario){
+          distancia = mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcadorEscolhidoUsuario.getLatLng());
+          marcadorEscolhidoUsuario.bindPopup("Distância: " +  distancia.toFixed(2) + " Metros").openPopup();
+          var limiteDistancia = 11; // Define o limite de distância em metros
+          if (distancia <= limiteDistancia) {
+            Notification.requestPermission().then(perm => {
+              if (perm === "granted") {
+                alert("próximo do marcador")
+              }
+            });
+          }
+        }
+      });
+    }, 5000); // Intervalo de 5 segundos
   </script>
 </body>
 </html>

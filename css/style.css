@@ -1,7 +1,36 @@
-#map {
-    height: 200px;
-}
-
-body{
-    background-color: lightgreen;
-}
+/* Add some CSS to style the body and map div */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+  }
+  
+  #map {
+    height: 80vh;
+    width: 80vw;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+  }
+  
+  /* Style the popups */
+  .leaflet-popup-content {
+    margin: 0;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+  }
+  
+  .leaflet-popup-tip-container {
+    display: none;
+  }
+  
+  /* Style the distance label */
+  #distance-label {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+    font-size: 1.1em;
+    font-weight: bold;
+  }
