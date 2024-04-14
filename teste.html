@@ -77,7 +77,7 @@
           if (distancia <= limiteDistancia) {
             Notification.requestPermission().then(perm => {
               if (perm === "granted") {
-                // new Notification("proximo")
+                new Notification("proximo");
                 alert("próximo do marcador")
               }
             });
