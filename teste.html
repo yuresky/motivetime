@@ -1,11 +1,47 @@
 <!DOCTYPE html>
-<html lang="pt-br"><head>
+<html lang="pt-br">
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Selecionar Localização</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
   <link rel="stylesheet" href="css/style.css">
+  <!-- Adicionando estilo para a barra de pesquisa -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css">
+  <style>
+    /* Estilizando a barra de pesquisa */
+    .leaflet-control-geocoder-form {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
 
+    .leaflet-control-geocoder-form input[type="text"] {
+      width: 300px;
+      padding: 10px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+    }
+
+    .leaflet-control-geocoder-form button {
+      background-color: #f9f9f9;
+      border: none;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .leaflet-control-geocoder-form button:hover {
+      background-color: #e0e0e0;
+    }
+  </style>
 </head>
 <body>
   <div id="map"></div>
@@ -13,6 +49,11 @@
   <!-- CDN -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geometryutil/0.12.0/leaflet.geometryutil.min.js"></script>
+  <!-- Adicionando script para a barra de pesquisa -->
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
+  
   <script>
     var mapa = L.map('map');
     mapa.locate({setView: true, maxZoom: 16});
@@ -21,6 +62,8 @@
     var marcadorEscolhidoUsuario;
     var watchId;
     var distancia;
+    var waypoints = [];
+    var routeControl;
 
     function aoEncontrarLocalizacao(e) {
       var raio = e.accuracy / 10;
@@ -34,11 +77,13 @@
 
       L.circle(e.latlng, raio).addTo(mapa);
 
+      waypoints = [e.latlng]; // Limpa waypoints anteriores e adiciona o novo
+
       mapa.on('click', function(e) {
         atualizarMarcador(e.latlng);
       });
 
-      // atualizar a distância nos dois amrcadorees
+      // atualizar a distância nos dois marcadores
       if (marcadorEscolhidoUsuario) {
         distancia =  mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcadorEscolhidoUsuario.getLatLng());
         marcadorEscolhidoUsuario.bindPopup("Distância: " +  distancia.toFixed(2) + " Metros").openPopup();
@@ -48,7 +93,8 @@
         if (distancia <= limiteDistancia) {
           Notification.requestPermission().then(perm => {
             if (perm === "granted") {
-              alert("próximo do marcador")
+              new Notification("próximo");
+              alert("próximo do marcador");
             }
           });
         }
@@ -61,6 +107,8 @@
       } else {
         marcadorEscolhidoUsuario.setLatLng(latlng);
       }
+
+      waypoints = [marcadorLocalizacaoUsuario.getLatLng(), latlng]; // Apenas o último marcador será um waypoint
 
       // limpa a observação atual(clearwatch) e inicia uma nova
       if (watchId) {
@@ -77,13 +125,27 @@
           if (distancia <= limiteDistancia) {
             Notification.requestPermission().then(perm => {
               if (perm === "granted") {
-                new Notification("proximo");
-                alert("próximo do marcador")
+                new Notification("próximo");
+                alert("próximo do marcador");
               }
             });
           }
         }
       });
+
+      // criar a rota usando os waypoints
+      if (waypoints.length > 1) {
+        // Remova o controle de rota anterior para evitar duplicatas
+        if (routeControl) {
+          mapa.removeControl(routeControl);
+        }
+        routeControl = L.Routing.control({
+          waypoints: waypoints,
+          lineOptions: {
+            styles: [{color: 'blue', opacity: 0.5, weight: 5}]
+          }
+        }).addTo(mapa);
+      }
     }
 
     function aoFalharLocalizacao(e) {
@@ -93,13 +155,29 @@
     mapa.on('locationfound', aoEncontrarLocalizacao);
     mapa.on('locationerror', aoFalharLocalizacao);
 
-
-  
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(mapa);
-    
-    // navigator.geolocation.clearWatch(watchId);
+
+    // Adicionando a barra de pesquisa
+    L.Control.geocoder().addTo(mapa);
+
+    // Adicionando botão para centralizar na posição do usuário
+    var botaoCentralizar = L.Control.extend({
+      options: {
+        position: 'topright'
+      },
+      onAdd: function () {
+        var div = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+        div.innerHTML = '<button onclick="centralizarNaPosicaoDoUsuario()">Centralizar</button>';
+        return div;
+      }
+    });
+    mapa.addControl(new botaoCentralizar());
+
+    function centralizarNaPosicaoDoUsuario() {
+      mapa.setView(marcadorLocalizacaoUsuario.getLatLng(), 16);
+    }
   </script>
 </body>
 </html>
