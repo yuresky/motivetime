@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menu Pop-up</title>
+<style>
+ .popup {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  padding: 20px;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.popup ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.popup ul li {
+  margin-bottom: 10px;
+}
+
+.popup ul li a {
+  text-decoration: none;
+  color: #333;
+}
+
+.popup ul li a:hover {
+  color: #007bff;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+</style>
+</head>
+<body>
+
+<div id="menuPopup" class="popup">
+  <ul>
+    <li><a href="#">Item 1</a></li>
+    <li><a href="#">Item 2</a></li>
+    <li><a href="#">Item 3</a></li>
+    <li><a href="#">Item 4</a></li>
+  </ul>
+  <button id="closePopup">Fechar</button>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  let timeoutId;
+  let popupOpen = false;
+
+  document.addEventListener('mousedown', function(event) {
+    timeoutId = setTimeout(function() {
+      if (!popupOpen) {
+        const menuPopup = document.getElementById('menuPopup');
+        menuPopup.style.display = 'block';
+        menuPopup.style.top = event.clientY + 'px';
+        menuPopup.style.left = event.clientX + 'px';
+        popupOpen = true;
+        vibrate();
+      }
+    }, 1000);
+  });
+
+  document.addEventListener('touchstart', function(event) {
+    timeoutId = setTimeout(function() {
+      if (!popupOpen) {
+        const menuPopup = document.getElementById('menuPopup');
+        menuPopup.style.display = 'block';
+        menuPopup.style.top = event.touches[0].clientY + 'px';
+        menuPopup.style.left = event.touches[0].clientX + 'px';
+        popupOpen = true;
+        vibrate();
+      }
+    }, 1000);
+  });
+
+  document.addEventListener('mouseup', function() {
+    clearTimeout(timeoutId);
+  });
+
+  document.addEventListener('touchend', function() {
+    clearTimeout(timeoutId);
+  });
+
+  document.getElementById('closePopup').addEventListener('click', function() {
+    const menuPopup = document.getElementById('menuPopup');
+    menuPopup.style.display = 'none';
+    popupOpen = false;
+  });
+});
+
+function vibrate() {
+  if (navigator.vibrate) {
+    navigator.vibrate(200);
+  }
+}
+
+</script>
+</body>
+</html>
