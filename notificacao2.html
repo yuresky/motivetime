@@ -7,20 +7,10 @@
 </head>
 <body>
   <script>
-    if (Notification.permission === "granted") {
-  var notification = new Notification("Título da Notificação", {
-    body: "Corpo da notificação aqui."
-  });
-} else if (Notification.permission !== 'denied') {
-  Notification.requestPermission().then(function (permission) {
-    if (permission === "granted") {
-      var notification = new Notification("Título da Notificação", {
-        body: "Corpo da notificação aqui."
-      });
-    }
-  });
-}
-
+    fetch('https://ntfy.sh/mytopic', {
+    method: 'POST', // PUT works too
+    body: 'Backup successful 😀'
+})
   </script>
 </body>
 </html>

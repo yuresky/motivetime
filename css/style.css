@@ -1,4 +1,3 @@
-/* Add some CSS to style the body and map div */
 body {
     display: flex;
     justify-content: center;
@@ -14,25 +13,35 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
   }
   
-  /* Style the popups */
-  .leaflet-popup-content {
-    margin: 0;
-    text-align: center;
-    font-size: 1.2em;
-    font-weight: bold;
-  }
-  
-  .leaflet-popup-tip-container {
-    display: none;
-  }
-  
-  /* Style the distance label */
-  #distance-label {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 10px;
-    font-size: 1.1em;
-    font-weight: bold;
-  }
+    /* Estilizando a barra de pesquisa */
+    .leaflet-control-geocoder-form {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
 
+    .leaflet-control-geocoder-form input[type="text"] {
+      width: 300px;
+      padding: 10px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+    }
+
+    .leaflet-control-geocoder-form button {
+      background-color: #f9f9f9;
+      border: none;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .leaflet-control-geocoder-form button:hover {
+      background-color: #e0e0e0;
+    }

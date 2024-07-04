@@ -1,94 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Menu Pop-up</title>
-<style>
-  .popup {
-  display: none;
-  position: absolute;
-  background-color: #f9f9f9;
-  padding: 20px;
-  border: 1px solid #ccc;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
-  animation: fadeIn 0.3s ease-in-out;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site com Pop-up de Ação</title>
+    <style>
+      body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
 }
 
-.popup ul {
-  list-style-type: none;
-  padding: 0;
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
 }
 
-.popup ul li {
-  margin-bottom: 10px;
+.popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
-.popup ul li a {
-  text-decoration: none;
-  color: #333;
+.popup-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
 }
 
-.popup ul li a:hover {
-  color: #007bff;
+button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.5);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-</style>
+    </style>
 </head>
 <body>
+    <div class="container" onmousedown="showPopup()" ontouchstart="showPopup()">
+        <h1>Clique e segure para ação</h1>
+    </div>
 
-<div id="menuPopup" class="popup">
-  <ul>
-    <li><a href="#">Item 1</a></li>
-    <li><a href="#">Item 2</a></li>
-    <li><a href="#">Item 3</a></li>
-    <li><a href="#">Item 4</a></li>
-  </ul>
-</div>
+    <div class="popup" id="popup">
+        <div class="popup-content">
+            <h2>Pop-up de Ação</h2>
+            <p>A ação desejada pode ser colocada aqui.</p>
+            <button onclick="closePopup()">Fechar</button>
+        </div>
+    </div>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-  let timeoutId;
+    <script>
 
-  document.addEventListener('mousedown', function(event) {
-    timeoutId = setTimeout(function() {
-      const menuPopup = document.getElementById('menuPopup');
-      menuPopup.style.display = 'block';
-      menuPopup.style.top = event.clientY + 'px';
-      menuPopup.style.left = event.clientX + 'px';
-    }, 1000);
-  });
+      function showPopup() {
+          document.getElementById('popup').style.display = 'block';
+      }
 
-  document.addEventListener('touchstart', function(event) {
-    timeoutId = setTimeout(function() {
-      const menuPopup = document.getElementById('menuPopup');
-      menuPopup.style.display = 'block';
-      menuPopup.style.top = event.touches[0].clientY + 'px';
-      menuPopup.style.left = event.touches[0].clientX + 'px';
-    }, 1000);
-  });
+      function closePopup() {
+          document.getElementById('popup').style.display = 'none';
+      }
 
-  document.addEventListener('mouseup', function() {
-    clearTimeout(timeoutId);
-  });
-
-  document.addEventListener('touchend', function() {
-    clearTimeout(timeoutId);
-  });
-});
-
-</script>
+    </script>
 </body>
 </html>
