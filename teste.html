@@ -102,44 +102,7 @@
     <button onclick="esconderGeocoder()">Fechar</button>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getMessaging } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-messaging.js";
-  
-    const firebaseConfig = {
-      apiKey: "AIzaSyAokwVdu-x452qjv_hqDOFGr5x4JDTHLKY",
-      authDomain: "onde-ta.firebaseapp.com",
-      projectId: "onde-ta",
-      storageBucket: "onde-ta.appspot.com",
-      messagingSenderId: "682066979444",
-      appId: "1:682066979444:web:8facebb72b60e1ccbd7f21",
-      measurementId: "G-FFX8NFSDRM"
-    };
-  
-    const app = initializeApp(firebaseConfig);
-    const messaging = getMessaging(app);
-  
-    // Solicitar permissão para enviar notificações
-    Notification.requestPermission().then((permission) => {
-      if (permission === "granted") {
-        console.log("Notification permission granted.");
-      } else {
-        console.log("Unable to get permission to notify.");
-      }
-    });
-  
-    // Obter o token de FCM
-    messaging.getToken({ vapidKey: 'YOUR_VAPID_KEY' }).then((currentToken) => {
-      if (currentToken) {
-        console.log("Token:", currentToken);
-        // Enviar o token para o servidor ou armazená-lo localmente
-      } else {
-        console.log('No registration token available.');
-      }
-    }).catch((err) => {
-      console.log('An error occurred while retrieving token. ', err);
-    });
-  </script>  
+  <audio id="notificationSound" src="notification_sound.mp3" type="audio/mp3"></audio>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geometryutil/0.12.0/leaflet.geometryutil.min.js"></script>
@@ -154,6 +117,8 @@
     var distancia;
     var waypoints = [];
     var routeControl;
+
+    
 
     function aoEncontrarLocalizacao(e) {
       var raio = e.accuracy / 10;
@@ -173,21 +138,22 @@
         abrirDialogoTexto(e.latlng);
       });
 
-      if (marcadorEscolhidoUsuario) {
-        distancia = mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcadorEscolhidoUsuario.getLatLng());
-        marcadorEscolhidoUsuario.bindPopup("Distância: " + distancia.toFixed(2) + " Metros").openPopup();
+    if (marcadorEscolhidoUsuario) {
+      distancia = mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcadorEscolhidoUsuario.getLatLng());
+      marcadorEscolhidoUsuario.bindPopup("Distância: " + distancia.toFixed(2) + " Metros").openPopup();
 
-        var limiteDistancia = 11;
-        if (distancia <= limiteDistancia) {
-          Notification.requestPermission().then(perm => {
-            if (perm === "granted") {
-              new Notification("Próximo do local!");
-            }
-          });
-        }
+      var limiteDistancia = 11;
+      if (distancia <= limiteDistancia) {
+        Notification.requestPermission().then(perm => {
+          if (perm === "granted") {
+            new Notification("Próximo do local!");
+            // Toca o som
+            document.getElementById('notificationSound').play();
+          }
+        });
       }
     }
-
+  }
     function abrirDialogoTexto(latlng) {
       var texto = prompt("Digite uma mensagem para este marcador:");
       if (texto !== null) {
