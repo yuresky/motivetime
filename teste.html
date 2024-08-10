@@ -118,8 +118,6 @@
     var waypoints = [];
     var routeControl;
 
-    
-
     function aoEncontrarLocalizacao(e) {
       var raio = e.accuracy / 10;
 
@@ -138,22 +136,18 @@
         abrirDialogoTexto(e.latlng);
       });
 
-    if (marcadorEscolhidoUsuario) {
-      distancia = mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcadorEscolhidoUsuario.getLatLng());
-      marcadorEscolhidoUsuario.bindPopup("Distância: " + distancia.toFixed(2) + " Metros").openPopup();
+      if (marcadorEscolhidoUsuario) {
+        distancia = mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcadorEscolhidoUsuario.getLatLng());
+        marcadorEscolhidoUsuario.bindPopup("Distância: " + distancia.toFixed(2) + " Metros").openPopup();
 
-      var limiteDistancia = 11;
-      if (distancia <= limiteDistancia) {
-        Notification.requestPermission().then(perm => {
-          if (perm === "granted") {
-            new Notification("Próximo do local!");
-            // Toca o som
-            document.getElementById('notificationSound').play();
-          }
-        });
+        var limiteDistancia = 11;
+        if (distancia <= limiteDistancia) {
+          // Toca o som
+          document.getElementById('notificationSound').play();
+        }
       }
     }
-  }
+
     function abrirDialogoTexto(latlng) {
       var texto = prompt("Digite uma mensagem para este marcador:");
       if (texto !== null) {
@@ -185,11 +179,8 @@
           marcadorEscolhidoUsuario.bindPopup(marcadorEscolhidoUsuario.texto + " (Distância: " + distancia.toFixed(2) + " Metros)").openPopup();
           var limiteDistancia = 11;
           if (distancia <= limiteDistancia) {
-            Notification.requestPermission().then(perm => {
-              if (perm === "granted") {
-                new Notification(marcadorEscolhidoUsuario.texto);
-              }
-            });
+            // Toca o som
+            document.getElementById('notificationSound').play();
           }
         }
       });
@@ -227,30 +218,50 @@
       attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
     });
 
-    var geocoder = L.Control.geocoder({
-      defaultMarkGeocode: false
-    });
+    function trocarCamada(layer) {
+      mapa.eachLayer(function(layer) {
+        mapa.removeLayer(layer);
+      });
 
-    geocoder.on('markgeocode', function(e) {
-      var bbox = e.geocode.bbox;
-      var poly = L.polygon([
-        bbox.getSouthEast(),
-        bbox.getNorthEast(),
-        bbox.getNorthWest(),
-        bbox.getSouthWest()
-      ]).addTo(mapa);
-      mapa.fitBounds(poly.getBounds());
-      esconderGeocoder();
-    });
+      switch(layer) {
+        case 'osm':
+          osm.addTo(mapa);
+          break;
+        case 'osmHOT':
+          osmHOT.addTo(mapa);
+          break;
+        case 'openTopoMap':
+          openTopoMap.addTo(mapa);
+          break;
+      }
+    }
 
-    geocoder.addTo(document.getElementById('geocoderBar'));
+    function zoomIn() {
+      mapa.zoomIn();
+    }
+
+    function zoomOut() {
+      mapa.zoomOut();
+    }
+
+    function centralizarNaPosicaoDoUsuario() {
+      if (marcadorLocalizacaoUsuario) {
+        mapa.setView(marcadorLocalizacaoUsuario.getLatLng(), 16);
+      }
+    }
 
     function mostrarGeocoder() {
-      document.getElementById('geocoderBar').style.display = 'flex';
+      var geocoderBar = document.getElementById('geocoderBar');
+      geocoderBar.style.display = 'flex';
+      if (!mapa.geocoderControl) {
+        mapa.geocoderControl = L.Control.geocoder().addTo(mapa);
+        mapa.geocoderControl._container.style.position = 'relative';
+      }
     }
 
     function esconderGeocoder() {
-      document.getElementById('geocoderBar').style.display = 'none';
+      var geocoderBar = document.getElementById('geocoderBar');
+      geocoderBar.style.display = 'none';
     }
 
     function trocarCamada(camada) {
