@@ -481,6 +481,18 @@ button:hover {
     function fecharNotificacao() {
       document.getElementById('notificationScreen').style.display = 'none';
     }
+    
+    function fecharNotificacao() {
+      document.getElementById('notificationScreen').style.display = 'none';
+      document.getElementById('notificationSound').pause();
+      document.getElementById('notificationSound').currentTime = 0;
+
+      // Restabelecer o mapa para o estado inicial
+      mapa.setView([0, 0], 1); // Ajuste as coordenadas e o zoom conforme necessário
+
+      // Outros recursos podem ser redefinidos aqui
+    }
+
   </script>
   
 </body>
