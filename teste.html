@@ -83,15 +83,125 @@
     .leaflet-control-zoom, .leaflet-bar, .leaflet-control{
       display: none;
     }
+
+    .popup-container {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+}
+
+.popup-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+textarea {
+  width: 100%;
+  height: 100px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  resize: none;
+  font-size: 16px; /* Adicione uma fonte de tamanho adequado */
+  color: black; /* Garanta que o texto tenha uma cor visível */
+}
+
+
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #3498db;
+  border: none;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #2980b9;
+}
+
+.notification-container {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.notification-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 600px;
+  text-align: center;
+}
+
+.notification-content p {
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.notification-content button {
+  padding: 10px 20px;
+  background-color: #3498db;
+  border: none;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.notification-content button:hover {
+  background-color: #2980b9;
+}
+
+
   </style>
 </head>
 <body>
+  <div id="customPopup" class="popup-container">
+    <div class="popup-content">
+      <span class="close-btn" onclick="fecharPopup()">&times;</span>
+      <h2>Adicionar Mensagem ao Marcador</h2>
+      <textarea id="markerMessage" placeholder="Digite sua mensagem aqui..." oninput="contarCaracteres()" maxlength="30"></textarea>
+      <span id="charCount">30 caracteres restantes</span>
+      <button onclick="salvarMensagem()">Salvar</button>
+    </div>
+  </div>  
+  <div id="notificationScreen" class="notification-container">
+    <div class="notification-content">
+      <p id="notificationMessage"></p>
+      <button onclick="fecharNotificacao()">Fechar</button>
+    </div>
+  </div>  
   <div id="map"></div>
   <div class="control-bar">
     <button onclick="zoomIn()">+</button>
     <button onclick="zoomOut()">-</button>
     <button onclick="centralizarNaPosicaoDoUsuario()">Centralizar</button>
-    <button onclick="mostrarGeocoder()">Pesquisar</button>
     <select id="layerControl" onchange="trocarCamada(this.value)">
       <option value="osm">OpenStreetMap</option>
       <option value="osmHOT">OpenStreetMap.HOT</option>
@@ -108,7 +218,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-geometryutil/0.12.0/leaflet.geometryutil.min.js"></script>
   <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
   <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
-
   <script>
     var mapa = L.map('map').locate({setView: true, maxZoom: 16});
     var marcadorLocalizacaoUsuario;
@@ -117,56 +226,74 @@
     var distancia;
     var waypoints = [];
     var routeControl;
-
+  
     function aoEncontrarLocalizacao(e) {
       var raio = e.accuracy / 10;
-
+  
       if (!marcadorLocalizacaoUsuario) {
         marcadorLocalizacaoUsuario = L.marker(e.latlng).addTo(mapa)
           .bindPopup("Você está aqui!").openPopup();
       } else {
         marcadorLocalizacaoUsuario.setLatLng(e.latlng);
       }
-
+  
       L.circle(e.latlng, raio).addTo(mapa);
-
+  
       waypoints = [e.latlng];
-
+  
       mapa.on('click', function(e) {
         abrirDialogoTexto(e.latlng);
       });
-
+  
       if (marcadorEscolhidoUsuario) {
         distancia = mapa.distance(marcadorLocalizacaoUsuario.getLatLng(), marcadorEscolhidoUsuario.getLatLng());
         marcadorEscolhidoUsuario.bindPopup("Distância: " + distancia.toFixed(2) + " Metros").openPopup();
-
+  
         var limiteDistancia = 11;
         if (distancia <= limiteDistancia) {
-          // Toca o som
-          document.getElementById('notificationSound').play();
+          mostrarNotificacao(marcadorEscolhidoUsuario.texto);
         }
       }
     }
-
+  
     function abrirDialogoTexto(latlng) {
-      var texto = prompt("Digite uma mensagem para este marcador:");
-      if (texto !== null) {
-        atualizarMarcador(latlng, texto);
-      }
+      currentLatLng = latlng; // Armazena a posição do marcador
+      document.getElementById('customPopup').style.display = 'flex';
     }
-
+  
+    function fecharPopup() {
+      document.getElementById('customPopup').style.display = 'none';
+    }
+  
+    function salvarMensagem() {
+      var texto = document.getElementById('markerMessage').value;
+      if (texto !== null && texto.trim() !== "") {
+        atualizarMarcador(currentLatLng, texto);
+      }
+      fecharPopup();
+    }
+  
+    function contarCaracteres() {
+      var textarea = document.getElementById('markerMessage');
+      var charCount = document.getElementById('charCount');
+      var maxLength = textarea.getAttribute('maxlength');
+      var currentLength = textarea.value.length;
+  
+      charCount.textContent = (maxLength - currentLength) + " caracteres restantes";
+    }
+  
     function atualizarMarcador(latlng, texto) {
       if (!marcadorEscolhidoUsuario) {
         marcadorEscolhidoUsuario = L.marker(latlng, { draggable: true }).addTo(mapa);
       } else {
         marcadorEscolhidoUsuario.setLatLng(latlng);
       }
-
+  
       marcadorEscolhidoUsuario.bindPopup(texto).openPopup();
       marcadorEscolhidoUsuario.texto = texto; // Armazena o texto no objeto marcador
-
+  
       waypoints = [marcadorLocalizacaoUsuario.getLatLng(), latlng];
-
+  
       if (watchId) {
         navigator.geolocation.clearWatch(watchId);
       }
@@ -179,12 +306,11 @@
           marcadorEscolhidoUsuario.bindPopup(marcadorEscolhidoUsuario.texto + " (Distância: " + distancia.toFixed(2) + " Metros)").openPopup();
           var limiteDistancia = 11;
           if (distancia <= limiteDistancia) {
-            // Toca o som
-            document.getElementById('notificationSound').play();
+            mostrarNotificacao(marcadorEscolhidoUsuario.texto);
           }
         }
       });
-
+  
       if (waypoints.length > 1) {
         if (routeControl) {
           mapa.removeControl(routeControl);
@@ -197,32 +323,42 @@
         }).addTo(mapa);
       }
     }
-
+  
+    function mostrarNotificacao(mensagem) {
+      document.getElementById('notificationMessage').textContent = mensagem;
+      document.getElementById('notificationScreen').style.display = 'flex';
+      document.getElementById('notificationSound').play();
+    }
+  
+    function fecharNotificacao() {
+      document.getElementById('notificationScreen').style.display = 'none';
+    }
+  
     function aoFalharLocalizacao(e) {
       alert(e.message);
     }
-
+  
     mapa.on('locationfound', aoEncontrarLocalizacao);
     mapa.on('locationerror', aoFalharLocalizacao);
-
+  
     var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(mapa);
-
+  
     var osmHOT = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     });
-
+  
     var openTopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
     });
-
+  
     function trocarCamada(layer) {
       mapa.eachLayer(function(layer) {
         mapa.removeLayer(layer);
       });
-
+  
       switch(layer) {
         case 'osm':
           osm.addTo(mapa);
@@ -235,21 +371,21 @@
           break;
       }
     }
-
+  
     function zoomIn() {
       mapa.zoomIn();
     }
-
+  
     function zoomOut() {
       mapa.zoomOut();
     }
-
+  
     function centralizarNaPosicaoDoUsuario() {
       if (marcadorLocalizacaoUsuario) {
         mapa.setView(marcadorLocalizacaoUsuario.getLatLng(), 16);
       }
     }
-
+  
     function mostrarGeocoder() {
       var geocoderBar = document.getElementById('geocoderBar');
       geocoderBar.style.display = 'flex';
@@ -258,19 +394,19 @@
         mapa.geocoderControl._container.style.position = 'relative';
       }
     }
-
+  
     function esconderGeocoder() {
       var geocoderBar = document.getElementById('geocoderBar');
       geocoderBar.style.display = 'none';
     }
-
+  
     function trocarCamada(camada) {
       mapa.eachLayer(function(layer) {
         if (layer instanceof L.TileLayer && layer !== geocoder) {
           mapa.removeLayer(layer);
         }
       });
-
+  
       switch (camada) {
         case 'osm':
           osm.addTo(mapa);
@@ -283,19 +419,19 @@
           break;
       }
     }
-
+  
     var cities = L.layerGroup();
     var mLittleton = L.marker([39.61, -105.02]).bindPopup('This is Littleton, CO.').addTo(cities);
     var mDenver = L.marker([39.74, -104.99]).bindPopup('This is Denver, CO.').addTo(cities);
     var mAurora = L.marker([39.73, -104.8]).bindPopup('This is Aurora, CO.').addTo(cities);
     var mGolden = L.marker([39.77, -105.23]).bindPopup('This is Golden, CO.').addTo(cities);
-
+  
     var overlays = {
       'Cities': cities
     };
-
+  
     var overlayControl = L.control.layers(null, overlays).addTo(mapa);
-
+  
     var botaoCentralizar = L.Control.extend({
       options: {
         position: 'topright'
@@ -307,18 +443,45 @@
       }
     });
     mapa.addControl(new botaoCentralizar());
-
-    function centralizarNaPosicaoDoUsuario() {
-      mapa.setView(marcadorLocalizacaoUsuario.getLatLng(), 16);
+  
+    var currentLatLng;
+  
+    function abrirDialogoTexto(latlng) {
+      currentLatLng = latlng; // Armazena a posição do marcador
+      document.getElementById('customPopup').style.display = 'flex';
     }
-
-    function zoomIn() {
-      mapa.zoomIn();
+  
+    function fecharPopup() {
+      document.getElementById('customPopup').style.display = 'none';
     }
-
-    function zoomOut() {
-      mapa.zoomOut();
+  
+    function salvarMensagem() {
+      var texto = document.getElementById('markerMessage').value;
+      if (texto !== null && texto.trim() !== "") {
+        atualizarMarcador(currentLatLng, texto);
+      }
+      fecharPopup();
+    }
+  
+    function contarCaracteres() {
+      var textarea = document.getElementById('markerMessage');
+      var charCount = document.getElementById('charCount');
+      var maxLength = textarea.getAttribute('maxlength');
+      var currentLength = textarea.value.length;
+  
+      charCount.textContent = (maxLength - currentLength) + " caracteres restantes";
+    }
+  
+    function mostrarNotificacao(mensagem) {
+      document.getElementById('notificationMessage').textContent = mensagem;
+      document.getElementById('notificationScreen').style.display = 'flex';
+      document.getElementById('notificationSound').play();
+    }
+  
+    function fecharNotificacao() {
+      document.getElementById('notificationScreen').style.display = 'none';
     }
   </script>
+  
 </body>
 </html>
