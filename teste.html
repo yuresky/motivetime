@@ -117,7 +117,7 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  font-size: 20px;
+  font-size: 80px;
   cursor: pointer;
 }
 
@@ -186,6 +186,23 @@ button:hover {
   background-color: #2980b9;
 }
 
+#layerControl {
+    font-family: FontAwesome, Arial;
+    font-size: 16px;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    background: #fff;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="black"><path d="M5.78 7.78a.75.75 0 011.06 0L10 10.94l3.16-3.16a.75.75 0 111.06 1.06l-3.75 3.75a.75.75 0 01-1.06 0l-3.75-3.75a.75.75 0 010-1.06z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 35px;
+    background-clip: border-box;
+    z-index: 10000000;
+}
 
   </style>
 </head>
@@ -209,12 +226,12 @@ button:hover {
   <div class="control-bar">
     <button onclick="zoomIn()"><i class="fas fa-search-plus"></i></button>
     <button onclick="zoomOut()"><i class="fas fa-search-minus"></i></button>
-    <button onclick="centralizarNaPosicaoDoUsuario()"><i class="fas fa-align-center"></i></button>
+    <button onclick="centralizarNaPosicaoDoUsuario()"> <i class="fas fa-crosshairs"></i></button>
     <select id="layerControl" onchange="trocarCamada(this.value)">
-      <option value="osm">OpenStreetMap</option>
-      <option value="osmHOT">OpenStreetMap.HOT</option>
-      <option value="openTopoMap">OpenTopoMap</option>
-    </select>
+      <option value="osm">&#xf3c5; Normal</option>
+      <option value="osmHOT">&#xf279; Minimalista</option>
+      <option value="openTopoMap">&#xf5a0; Desenho*</option>
+  </select>
   </div>
     <div class="geocoder-bar" id="geocoderBar">
     <button onclick="esconderGeocoder()">Fechar</button>
@@ -340,6 +357,28 @@ button:hover {
   
     function fecharNotificacao() {
       document.getElementById('notificationScreen').style.display = 'none';
+      document.getElementById('notificationSound').pause();
+      document.getElementById('notificationSound').currentTime = 0;
+  
+      // Reiniciar o mapa e variáveis
+      mapa.setView([0, 0], 1); // Ajuste as coordenadas e o zoom conforme necessário
+      if (marcadorLocalizacaoUsuario) {
+        mapa.removeLayer(marcadorLocalizacaoUsuario);
+        marcadorLocalizacaoUsuario = null;
+      }
+      if (marcadorEscolhidoUsuario) {
+        mapa.removeLayer(marcadorEscolhidoUsuario);
+        marcadorEscolhidoUsuario = null;
+      }
+      if (routeControl) {
+        mapa.removeControl(routeControl);
+        routeControl = null;
+      }
+      waypoints = [];
+      distancia = null;
+      
+      // Reativar a localização
+      mapa.locate({setView: true, maxZoom: 16});
     }
   
     function aoFalharLocalizacao(e) {
@@ -349,6 +388,7 @@ button:hover {
     mapa.on('locationfound', aoEncontrarLocalizacao);
     mapa.on('locationerror', aoFalharLocalizacao);
   
+    // Camadas de mapa
     var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(mapa);
@@ -362,12 +402,15 @@ button:hover {
       attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
     });
   
-    function trocarCamada(layer) {
+    function trocarCamada(camada) {
       mapa.eachLayer(function(layer) {
-        mapa.removeLayer(layer);
+        // Remover apenas as camadas de mapa base (L.TileLayer)
+        if (layer instanceof L.TileLayer) {
+          mapa.removeLayer(layer);
+        }
       });
   
-      switch(layer) {
+      switch (camada) {
         case 'osm':
           osm.addTo(mapa);
           break;
@@ -408,26 +451,6 @@ button:hover {
       geocoderBar.style.display = 'none';
     }
   
-    function trocarCamada(camada) {
-      mapa.eachLayer(function(layer) {
-        if (layer instanceof L.TileLayer && layer !== geocoder) {
-          mapa.removeLayer(layer);
-        }
-      });
-  
-      switch (camada) {
-        case 'osm':
-          osm.addTo(mapa);
-          break;
-        case 'osmHOT':
-          osmHOT.addTo(mapa);
-          break;
-        case 'openTopoMap':
-          openTopoMap.addTo(mapa);
-          break;
-      }
-    }
-  
     var cities = L.layerGroup();
     var mLittleton = L.marker([39.61, -105.02]).bindPopup('This is Littleton, CO.').addTo(cities);
     var mDenver = L.marker([39.74, -104.99]).bindPopup('This is Denver, CO.').addTo(cities);
@@ -450,58 +473,9 @@ button:hover {
         return div;
       }
     });
+  
     mapa.addControl(new botaoCentralizar());
-  
-    var currentLatLng;
-  
-    function abrirDialogoTexto(latlng) {
-      currentLatLng = latlng; // Armazena a posição do marcador
-      document.getElementById('customPopup').style.display = 'flex';
-    }
-  
-    function fecharPopup() {
-      document.getElementById('customPopup').style.display = 'none';
-    }
-  
-    function salvarMensagem() {
-      var texto = document.getElementById('markerMessage').value;
-      if (texto !== null && texto.trim() !== "") {
-        atualizarMarcador(currentLatLng, texto);
-      }
-      fecharPopup();
-    }
-  
-    function contarCaracteres() {
-      var textarea = document.getElementById('markerMessage');
-      var charCount = document.getElementById('charCount');
-      var maxLength = textarea.getAttribute('maxlength');
-      var currentLength = textarea.value.length;
-  
-      charCount.textContent = (maxLength - currentLength) + " caracteres restantes";
-    }
-  
-    function mostrarNotificacao(mensagem) {
-      document.getElementById('notificationMessage').textContent = mensagem;
-      document.getElementById('notificationScreen').style.display = 'flex';
-      document.getElementById('notificationSound').play();
-    }
-  
-    function fecharNotificacao() {
-      document.getElementById('notificationScreen').style.display = 'none';
-    }
-    
-    function fecharNotificacao() {
-      document.getElementById('notificationScreen').style.display = 'none';
-      document.getElementById('notificationSound').pause();
-      document.getElementById('notificationSound').currentTime = 0;
-
-      // Restabelecer o mapa para o estado inicial
-      mapa.setView([0, 0], 1); // Ajuste as coordenadas e o zoom conforme necessário
-
-      // Outros recursos podem ser redefinidos aqui
-    }
-
   </script>
-  
+    
 </body>
 </html>
